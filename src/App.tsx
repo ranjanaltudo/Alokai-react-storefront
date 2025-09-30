@@ -1,10 +1,12 @@
 import Intro from './Intro';
+import React from 'react';
+import TestAuth from './testAuth';
+
 
 function App() {
   return (
     <>
       <Intro />
-      {/* Feel free to delete Intro component and start building with Storefront UI 2*/}
     </>
   );
 }

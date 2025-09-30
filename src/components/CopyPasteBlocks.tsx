@@ -1,132 +1,198 @@
 import {
+  SfRating,
   SfButton,
-  SfIconRemove,
   SfLink,
-  SfIconAdd,
+  SfCounter,
+  SfIconShoppingCart,
+  SfIconCompareArrows,
+  SfIconFavorite,
   SfIconSell,
-  SfIconDelete,
+  SfIconPackage,
+  SfIconRemove,
+  SfIconAdd,
+  SfIconWarehouse,
+  SfIconSafetyCheck,
+  SfIconShoppingCartCheckout,
 } from '@storefront-ui/react';
-import { useId, ChangeEvent } from 'react';
-import { clamp } from '@storefront-ui/shared';
 import { useCounter } from 'react-use';
-import { Product } from './types';
+import { useId, useEffect, useState, ChangeEvent } from 'react';
+import { clamp } from '@storefront-ui/shared';
+import { fetchProducts } from "../services/OrderCloudService";
 
-const PRODUCT: Product = {
-  name: 'Smartwatch Fitness Tracker',
-  img: 'https://storage.googleapis.com/sfui_docs_artifacts_bucket_public/production/smartwatch.png',
-  isSale: true,
-  size: '6.5',
-  color: 'Red',
-  price: 2342,
+type OrderCloudProduct = {
+  id: string;
+  name: string;
+  description?: string;
+  brand?: string;
+  regular_price?: number;
+  sale_price?: number;
+  inventory_quantity?: number;
+  slug?: string;
+  images?: Array<{ url?: string; alt?: string }>; 
+  dimensions?: {
+    height?: number;
+    length?: number;
+    width?: number;
+    weight?: number;
+  };
 };
 
-export const CopyPasteBlocks = () => {
+
+export default function CopyPasteBlocks({ productId }: { productId: string }) {
   const inputId = useId();
   const min = 1;
-  const max = 10;
   const [value, { inc, dec, set }] = useCounter(min);
+  const [product, setProduct] = useState<OrderCloudProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchProductById(productId);
+        setProduct(data);
+      } catch (error) {
+        console.error("Failed to load product:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [productId]);
+
   function handleOnChange(event: ChangeEvent<HTMLInputElement>) {
     const { value: currentValue } = event.target;
     const nextValue = parseFloat(currentValue);
     set(Number(clamp(nextValue, min, max)));
   }
 
-  const { name, img, isSale, size, color, price } = PRODUCT;
+  if (loading) {
+    return <p>Loading product...</p>;
+  }
+
+  if (!product) {
+    return <p>Product not found.</p>;
+  }
+
+ const price = product.sale_price ?? product.regular_price ?? 0;
+ const max = product?.inventory_quantity ?? 0;
 
   return (
-    <div className="flex flex-col justify-center items-center gap-4 border-y p-4">
-      <p className="typography-headline-3">Copy/Paste pre-built Blocks</p>
-      <div className="relative flex border-b-[1px] border-neutral-200 hover:shadow-lg min-w-[320px] max-w-[640px] p-4">
-        <div className="relative overflow-hidden rounded-md w-[100px] sm:w-[176px]">
-          <SfLink href="#">
-            <img
-              className="w-full h-auto border rounded-md border-neutral-200"
-              src={img}
-              alt="alt"
-              width={300}
-              height={300}
-            />
-          </SfLink>
-          {isSale && (
-            <div className="absolute top-0 left-0 text-white bg-secondary-600 py-1 pl-1.5 pr-2 text-xs font-medium">
-              <SfIconSell size="xs" className="mr-1" />
-              Sale
-            </div>
-          )}
+    <section className="md:max-w-[640px]">
+      <div className="inline-flex items-center justify-center text-sm font-medium text-white bg-secondary-600 py-1.5 px-3 mb-4">
+        <SfIconSell size="sm" className="mr-1.5" />
+        Sale
+      </div>
+
+      <h1 className="mb-1 font-bold typography-headline-4">
+        {product.name}
+      </h1>
+
+      <strong className="block font-bold typography-headline-3">
+        ${price.toFixed(2)}
+      </strong>
+
+      <div className="inline-flex items-center mt-4 mb-2">
+        <SfRating size="xs" value={3} max={5} />
+        <SfCounter className="ml-1" size="xs">
+          123
+        </SfCounter>
+        <SfLink href="#" variant="secondary" className="ml-2 text-xs text-neutral-500">
+          123 reviews
+        </SfLink>
+      </div>
+
+      <ul className="mb-4 font-normal typography-text-sm">
+        <li>{product.description || "No description available."}</li>
+      </ul>
+
+      <div className="py-4 mb-4 border-gray-200 border-y">
+        <div className="bg-primary-100 text-primary-700 flex justify-center gap-1.5 py-1.5 typography-text-sm items-center mb-4 rounded-md">
+          <SfIconShoppingCartCheckout />1 in cart
         </div>
-        <div className="flex flex-col pl-4 min-w-[180px] flex-1">
-          <SfLink
-            href="#"
-            variant="secondary"
-            className="no-underline typography-text-sm sm:typography-text-lg"
-          >
-            {name}
-          </SfLink>
-          <div className="my-2 sm:mb-0">
-            <ul className="text-xs font-normal leading-5 sm:typography-text-sm text-neutral-700">
-              <li>
-                <span className="mr-1">Size:</span>
-                <span className="font-medium">{size}</span>
-              </li>
-              <li>
-                <span className="mr-1">Color:</span>
-                <span className="font-medium">{color}</span>
-              </li>
-            </ul>
-          </div>
-          <div className="items-center sm:mt-auto sm:flex">
-            <span className="font-bold sm:ml-auto sm:order-1 typography-text-sm sm:typography-text-lg">
-              ${price}
-            </span>
-            <div className="flex items-center justify-between mt-4 sm:mt-0">
-              <div className="flex mr-auto sm:mr-4">
-                <SfButton
-                  type="button"
-                  variant="tertiary"
-                  square
-                  className="border-l rounded-r-none border-y border-neutral-300"
-                  disabled={value <= min}
-                  aria-controls={inputId}
-                  aria-label="Decrease value"
-                  onClick={() => dec()}
-                >
-                  <SfIconRemove />
-                </SfButton>
-                <input
-                  id={inputId}
-                  type="number"
-                  role="spinbutton"
-                  className="appearance-none px-2 border-y border-neutral-300 rounded-none text-center [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
-                  min={min}
-                  max={max}
-                  value={value}
-                  onChange={handleOnChange}
-                />
-                <SfButton
-                  type="button"
-                  variant="tertiary"
-                  square
-                  className="border-r rounded-l-none border-y border-neutral-300"
-                  disabled={value >= max}
-                  aria-controls={inputId}
-                  aria-label="Increase value"
-                  onClick={() => inc()}
-                >
-                  <SfIconAdd />
-                </SfButton>
-              </div>
-              <button
-                aria-label="Remove"
-                type="button"
-                className="text-neutral-500 text-xs font-light ml-auto flex items-center px-3 py-1.5"
+        <div className="items-start xs:flex">
+          <div className="flex flex-col items-stretch xs:items-center xs:inline-flex">
+            <div className="flex border border-neutral-300 rounded-md">
+              <SfButton
+                variant="tertiary"
+                square
+                className="rounded-r-none p-3"
+                disabled={value <= min}
+                aria-controls={inputId}
+                aria-label="Decrease value"
+                onClick={() => dec()}
               >
-                <SfIconDelete />
-                <span className="hidden ml-1.5 sm:block"> Remove </span>
-              </button>
+                <SfIconRemove />
+              </SfButton>
+              <input
+                id={inputId}
+                type="number"
+                role="spinbutton"
+                className="grow appearance-none mx-2 w-8 text-center bg-transparent font-medium"
+                min={min}
+                max={max}
+                value={value}
+                onChange={handleOnChange}
+              />
+              <SfButton
+                variant="tertiary"
+                square
+                className="rounded-l-none p-3"
+                disabled={value >= max}
+                aria-controls={inputId}
+                aria-label="Increase value"
+                onClick={() => inc()}
+              >
+                <SfIconAdd />
+              </SfButton>
             </div>
+            <p className="self-center mt-1 mb-4 text-xs text-neutral-500 xs:mb-0">
+              <strong className="text-neutral-900">{max}</strong> in stock
+            </p>
           </div>
+          <SfButton size="lg" className="w-full xs:ml-4" slotPrefix={<SfIconShoppingCart size="sm" />}>
+            Add to cart
+          </SfButton>
+        </div>
+        <div className="flex justify-center mt-4 gap-x-4">
+          <SfButton size="sm" variant="tertiary" slotPrefix={<SfIconCompareArrows size="sm" />}>
+            Compare
+          </SfButton>
+          <SfButton size="sm" variant="tertiary" slotPrefix={<SfIconFavorite size="sm" />}>
+            Add to list
+          </SfButton>
         </div>
       </div>
-    </div>
+
+      <div className="flex first:mt-4">
+        <SfIconPackage size="sm" className="flex-shrink-0 mr-1 text-neutral-500" />
+        <p className="text-sm">
+          Free shipping, arrives by Thu, Apr 7. Want it faster?
+          <SfLink href="#" variant="secondary" className="mx-1">
+            Add an address
+          </SfLink>
+          to see options
+        </p>
+      </div>
+      <div className="flex mt-4">
+        <SfIconWarehouse size="sm" className="flex-shrink-0 mr-1 text-neutral-500" />
+        <p className="text-sm">
+          Pickup not available at your shop.
+          <SfLink href="#" variant="secondary" className="ml-1">
+            Check availability nearby
+          </SfLink>
+        </p>
+      </div>
+      <div className="flex mt-4">
+        <SfIconSafetyCheck size="sm" className="flex-shrink-0 mr-1 text-neutral-500" />
+        <p className="text-sm">
+          Free 30-days returns.
+          <SfLink href="#" variant="secondary" className="ml-1">
+            Details
+          </SfLink>
+        </p>
+      </div>
+    </section>
   );
-};
+}
