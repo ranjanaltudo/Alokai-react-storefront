@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getAccessToken } from "./AuthService";
 
+
 const fetchProducts = async (productId?: string) => {
   try {
     // Check if token is already in localStorage
@@ -13,8 +14,6 @@ const fetchProducts = async (productId?: string) => {
     }
 
     const url = 'https://skinflintily-leporine-paulene.ngrok-free.dev/api/products/search/';
-    console.log("Access Token being used:", accessToken);
-    console.log("API Request URL:", url);
 
     // If no access token is available, log an error and exit
     if (!accessToken) {
