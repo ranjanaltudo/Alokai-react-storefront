@@ -40,9 +40,7 @@ export default function ProductList() {
     const loadProducts = async () => {
       try {
         const data = await fetchProducts();
-        console.log("Fetched data:", data);
         setProducts(data ?? []);
-        console.log("Loaded products:", data);
       } catch (err: any) {
         setError(err.message || "Failed to load products");
       } finally {
