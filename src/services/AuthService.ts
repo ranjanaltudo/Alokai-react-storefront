@@ -1,27 +1,28 @@
 import axios from 'axios';
-import apiConfig from '../services/apiconfig';
+import apiConfig from '../services/apiConfig';
 
 const getAccessToken = async (): Promise<string> => {
 
   try {
+    console.log('Token URL:', apiConfig.tokenUrl);
     const response = await axios.post(
       apiConfig.tokenUrl,
-      new URLSearchParams({
+     new URLSearchParams({
         grant_type: 'client_credentials',
-        client_id: apiConfig.clientId,
+        client_id:   apiConfig.clientId,
         client_secret: apiConfig.clientSecret,
       }),
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'ngrok-skip-browser-warning': 'true',
         },
       }
     );
     // Log the response to ensure we are getting the access token
-    console.log('Access token response:', response.data);
+    console.log('Token Response:', response.data);
 
     if (response.data?.data?.access_token) {
+      console.log('Access token received:', response.data);
     return response.data.data.access_token;
     } else {
     throw new Error("No access token in response");

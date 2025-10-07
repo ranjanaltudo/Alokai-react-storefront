@@ -1,13 +1,15 @@
-import Intro from './Intro';
-import React from 'react';
-import TestAuth from './testAuth';
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Intro from "./Intro";
+import ProductDetail from "./components/ProductDetail";
 
 function App() {
   return (
-    <>
-      <Intro />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Intro />} />
+        <Route path="/products/:slug" element={<ProductDetail />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

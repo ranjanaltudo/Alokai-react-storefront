@@ -49,8 +49,8 @@ export default function CopyPasteBlocks({ productId }: { productId: string }) {
     const loadProduct = async () => {
       try {
         setLoading(true);
-        const data = await fetchProductById(productId);
-        setProduct(data);
+        const data = await fetchProducts();
+       // setProducts(data ?? []);
       } catch (error) {
         console.error("Failed to load product:", error);
       } finally {

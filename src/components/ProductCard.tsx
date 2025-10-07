@@ -6,6 +6,7 @@ import {
   SfIconShoppingCart,
   SfIconFavorite,
 } from "@storefront-ui/react";
+import { Link } from "react-router-dom";
 
 interface ProductCardProps {
   product: any; // Replace with your product type
@@ -15,7 +16,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const image =
     product?.images?.find((img: any) => img.is_primary_image)?.url ||
     product?.images?.[0]?.url ||
-    "https://via.placeholder.com/300";
+    "";
 
   const price = product?.regular_price ?? product?.sale_price ?? 0;
 
@@ -31,33 +32,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             height="300"
           />
         </SfLink>
-        <SfButton
-          variant="tertiary"
-          size="sm"
-          square
-          className="absolute bottom-0 right-0 mr-2 mb-2 bg-white ring-1 ring-inset ring-neutral-200 !rounded-full"
-          aria-label="Add to wishlist"
-        >
-          <SfIconFavorite size="sm" />
-        </SfButton>
       </div>
       <div className="p-4 border-t border-neutral-200">
-        <SfLink
-          href={`/products/${product?.slug}`}
-          variant="secondary"
-          className="no-underline"
-        >
+        <Link to={`/products/${product.slug}`} className="no-underline font-semibold">
           {product?.name}
-        </SfLink>
-
-        <div className="flex items-center pt-1">
-          <SfRating size="xs" value={5} max={5} />{" "}
-          {/* No rating in API → hardcoded */}
-          <SfLink href="#" variant="secondary" className="pl-1 no-underline">
-            <SfCounter size="xs">{123}</SfCounter>{" "}
-            {/* Hardcoded count for now */}
-          </SfLink>
-        </div>
+        </Link>
 
         <p className="block py-2 font-normal typography-text-sm text-neutral-700">
           {product?.description}
