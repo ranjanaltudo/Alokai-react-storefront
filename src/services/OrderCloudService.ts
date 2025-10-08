@@ -4,7 +4,7 @@ import apiConfig  from "../services/apiConfig";
 
 interface SearchFilters {
   brands?: string[];
-  category?:string[];
+  categories?: string[];
 }
  
 const fetchProducts = async (filters: SearchFilters = {}) => {
@@ -19,6 +19,10 @@ const fetchProducts = async (filters: SearchFilters = {}) => {
 
     if (filters.brands && filters.brands.length > 0) {
       searchFilters["brand"] = filters.brands;
+    }
+
+    if (filters.categories && filters.categories.length > 0) {
+      searchFilters["Category"] = filters.categories; // add category filter
     }
     console.log("Calling fetchProducts with filters:", JSON.stringify(searchFilters, null, 2));
 
@@ -70,7 +74,6 @@ const fetchCategories = async () => {
 
     const categories = response.data?.data?.items || [];
     const categoryIds = categories.map((cat: any) => cat.id.toLowerCase());
-    console.log("Fetched category IDs:", categoryIds);
     return categoryIds;
   } catch (error: any) {
     console.error("Error fetching categories:", error.response?.data || error.message);

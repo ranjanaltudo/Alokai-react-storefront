@@ -22,8 +22,7 @@ export default function ProductDetail() {
     loadProduct();
   }, [slug]);
 
-  if (loading) return <p>Loading product...</p>;
-  if (!product) return <p>Product not found!</p>;
+   if (loading || !product) return null;
 
   return (
 
