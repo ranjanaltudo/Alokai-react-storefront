@@ -85,22 +85,17 @@ const toggleCheckbox = (
   const loadCategories = async () => {
     const cats = await fetchCategories();
     setCategoryList(cats);
-    console.log("Categories loaded to state:", cats); // Should show categories in console
+   // console.log("Categories loaded to state:", cats); // Should show categories in console
   };
   loadCategories();
 }, []);
 
-useEffect(() => {
-  if (allProducts.length > 0) {
-    console.log("Sample product structure:", allProducts[0]);
-  }
-}, [allProducts]);
 
   // Apply filters
   useEffect(() => {
     let result = [...allProducts];
-      console.log("Selected categories:", selectedCategories);
-      console.log("All products categories:", allProducts.map(p => p.category));
+      //console.log("Selected categories:", selectedCategories);
+     // console.log("All products categories:", allProducts.map(p => p.category));
 
     if (selectedBrands.length > 0) {
       result = result.filter((p) => selectedBrands.includes(p.brand));

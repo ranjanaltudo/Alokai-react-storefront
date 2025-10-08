@@ -19,7 +19,6 @@ const getAccessToken = async (): Promise<string> => {
       }
     );
     // Log the response to ensure we are getting the access token
-    console.log('Token Response:', response.data);
 
     if (response.data?.data?.access_token) {
       console.log('Access token received:', response.data);
