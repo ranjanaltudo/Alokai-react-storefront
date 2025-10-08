@@ -5,5 +5,5 @@ const apiConfig = {
   searchUrl: import.meta.env.VITE_ORDERCLOUD_SEARCH_URL || "",
   categoryUrl: import.meta.env.VITE_ORDERCLOUD_CATEGORY_URL || "",
 };
-console.log("API Config Loaded:", apiConfig);
+//console.log("API Config Loaded:", apiConfig);
 export default apiConfig;
