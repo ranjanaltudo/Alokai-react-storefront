@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
 import { fetchProducts } from "../services/OrderCloudService";
-import { fetchCategories } from "../services/OrderCloudService";
 
 interface Variant {
   id: string;
@@ -59,64 +58,65 @@ const toggleCheckbox = (
   }
 };
 
+// initial fetch
+useEffect(() => {
+  const load = async () => {
+    setLoading(true);
+    try {
+      const { items, facets } = await fetchProducts();  // 👈 Fix: destructure
+      setAllProducts(items);
+      setFilteredProducts(items);
 
-  // Initial fetch
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const data = await fetchProducts(); 
-       //console.log("All Data:" ,data);
-        setAllProducts(data);
-        setFilteredProducts(data);
-        setError(null);
-      } catch (err: any) {
-        setError(err.message || "Failed to load products");
-      } finally {
-        setLoading(false);
-      }
-    };
+      const categoryFacet = facets.find((f: any) => f.name === "Category");
+      setCategoryList(categoryFacet?.values?.map((v: any) => v.value) || []);
 
-    load();
-  }, []);
- 
-  //For Fetching Categories
-  useEffect(() => {
-  const loadCategories = async () => {
-    const cats = await fetchCategories();
-    setCategoryList(cats);
-   // console.log("Categories loaded to state:", cats); // Should show categories in console
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || "Failed to load products");
+    } finally {
+      setLoading(false);
+    }
   };
-  loadCategories();
+
+  load();
 }, []);
 
 
+
+
   // Apply filters
-  useEffect(() => {
-    let result = [...allProducts];
-      //console.log("Selected categories:", selectedCategories);
-     // console.log("All products categories:", allProducts.map(p => p.category));
+useEffect(() => {
+  const load = async () => {
+    setLoading(true);
+    try {
+      const { items, facets } = await fetchProducts({
+        brands: selectedBrands,
+        categories: selectedCategories,
+      });
 
-    if (selectedBrands.length > 0) {
-      result = result.filter((p) => selectedBrands.includes(p.brand));
-    }
+      setAllProducts(items);
+      setFilteredProducts(items);
+      setError(null);
 
-    if (selectedCategories.length > 0) {
-      result = result.filter((p) =>
-        selectedCategories.some(
-          (cat) => cat.toLowerCase() === p.category?.toLowerCase()
-        )
-      );
+      const categoryFacet = facets.find((f: any) => f.name === "Category");
+      setCategoryList(categoryFacet?.values?.map((v: any) => v.value) || []);
+    } catch (err: any) {
+      setError(err.message || "Failed to load products");
+    } finally {
+      setLoading(false);
     }
-    setFilteredProducts(result);
-    setCurrentPage(1);
-  }, [selectedBrands,selectedCategories, allProducts]);
+  };
+
+  load();
+}, [selectedBrands, selectedCategories]);
+
 
   // Extract brand facets from all products
   const allBrands = Array.from(new Set(allProducts.map((p) => p.brand)));
-  const allCategories = Array.from(
+  
+ /* const allCategories = Array.from(
     new Set(allProducts.flatMap((p) => p.category || []))
-  );
+  );*/
 
 
   // Pagination

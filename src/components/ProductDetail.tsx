@@ -11,18 +11,18 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadProduct = async () => {
-      setLoading(true);
-      const allProducts = await fetchProducts();
-      const found = allProducts.find((p: any) => p.slug === slug);
-      setProduct(found);
-      setLoading(false);
-    };
-    loadProduct();
-  }, [slug]);
+useEffect(() => {
+  const loadProduct = async () => {
+    setLoading(true);
+    const { items: allProducts } = await fetchProducts(); 
+    const found = allProducts.find((p: any) => p.slug === slug);
+    setProduct(found);
+    setLoading(false);
+  };
+  loadProduct();
+}, [slug]);
 
-   if (loading || !product) return null;
+  if (loading || !product) return null;
 
   return (
 
@@ -75,4 +75,3 @@ export default function ProductDetail() {
     
   );
 }
-

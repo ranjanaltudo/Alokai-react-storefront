@@ -4,7 +4,7 @@ import apiConfig from '../services/apiConfig';
 const getAccessToken = async (): Promise<string> => {
 
   try {
-    console.log('Token URL:', apiConfig.tokenUrl);
+
     const response = await axios.post(
       apiConfig.tokenUrl,
      new URLSearchParams({
@@ -21,7 +21,6 @@ const getAccessToken = async (): Promise<string> => {
     // Log the response to ensure we are getting the access token
 
     if (response.data?.data?.access_token) {
-      console.log('Access token received:', response.data);
     return response.data.data.access_token;
     } else {
     throw new Error("No access token in response");

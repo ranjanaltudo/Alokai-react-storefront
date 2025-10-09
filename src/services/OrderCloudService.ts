@@ -1,34 +1,28 @@
 import axios from "axios";
 import { getAccessToken } from "./AuthService";
-import apiConfig  from "../services/apiConfig";
+import apiConfig from "../services/apiConfig";
 
+// Define filter structure
 interface SearchFilters {
   brands?: string[];
   categories?: string[];
 }
- 
+
 const fetchProducts = async (filters: SearchFilters = {}) => {
   try {
     const accessToken = await getAccessToken();
     if (!accessToken) {
       console.error("No access token found.");
-      return [];
+      return { items: [], facets: [] };
     }
 
     const searchFilters: Record<string, any> = {};
-
-    if (filters.brands && filters.brands.length > 0) {
-      searchFilters["brand"] = filters.brands;
-    }
-
-    if (filters.categories && filters.categories.length > 0) {
-      searchFilters["Category"] = filters.categories; // add category filter
-    }
-    console.log("Calling fetchProducts with filters:", JSON.stringify(searchFilters, null, 2));
+    if (filters.brands?.length) searchFilters["Brand"] = filters.brands;
+    if (filters.categories?.length) searchFilters["Category"] = filters.categories;
 
     const body = {
       page: 1,
-      page_size: 100,
+      page_size: 20,
       includes: ["facets", "variants"],
       filters: searchFilters,
     };
@@ -41,43 +35,16 @@ const fetchProducts = async (filters: SearchFilters = {}) => {
       },
     });
 
-    const products = response?.data?.data?.items;
-    if (!Array.isArray(products)){console.warn("fetchProducts: items is not array", products);return[];}
-    return products;
+    const data = response?.data?.data;
+    const items = Array.isArray(data?.items) ? data.items : [];
+    const facets = Array.isArray(data?.meta?.facets) ? data.meta.facets : [];
+
+    return { items, facets };
   } catch (error: any) {
     console.error("Error fetching products:", error.response?.data || error.message);
-    return [];
+    return { items: [], facets: [] };
   }
 };
 
-// New function to fetch categories
-const fetchCategories = async () => {
-  try {
-    const accessToken = await getAccessToken();
-    if (!accessToken) {
-      console.error("No access token found.");
-      return [];
-    }
 
-    const body = {
-      page: 1,
-      page_size: 100,
-    };
-
-    const response = await axios.post(apiConfig.categoryUrl, body, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "application/json",
-        "Cache-Control": "no-cache",
-      },
-    });
-
-    const categories = response.data?.data?.items || [];
-    const categoryIds = categories.map((cat: any) => cat.id.toLowerCase());
-    return categoryIds;
-  } catch (error: any) {
-    console.error("Error fetching categories:", error.response?.data || error.message);
-    return [];
-  }
-};
-export { fetchProducts, fetchCategories};
+export { fetchProducts };
