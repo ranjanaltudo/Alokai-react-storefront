@@ -1,9 +1,5 @@
 const apiConfig = {
-  clientId: import.meta.env.VITE_ORDERCLOUD_APP_CLIENT_ID || "",
-  clientSecret: import.meta.env.VITE_ORDERCLOUD_APP_CLIENT_SECRET || "",
-  tokenUrl: import.meta.env.VITE_ORDERCLOUD_AUTH_TOKEN_URL || "",
-  searchUrl: import.meta.env.VITE_ORDERCLOUD_SEARCH_URL || "",
-  categoryUrl: import.meta.env.VITE_ORDERCLOUD_CATEGORY_URL || "",
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || ""
 };
-//console.log("API Config Loaded:", apiConfig);
+console.log("API Config Loaded:", apiConfig);
 export default apiConfig;

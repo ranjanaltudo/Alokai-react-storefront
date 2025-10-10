@@ -17,7 +17,7 @@ import {
 import { useCounter } from 'react-use';
 import { useId, useEffect, useState, ChangeEvent } from 'react';
 import { clamp } from '@storefront-ui/shared';
-import { fetchProducts } from "../services/OrderCloudService";
+import { fetchProducts } from "../services/product";
 
 type OrderCloudProduct = {
   id: string;

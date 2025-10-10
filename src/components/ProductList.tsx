@@ -1,201 +1,134 @@
 import { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
-import { fetchProducts } from "../services/OrderCloudService";
-
-interface Variant {
-  id: string;
-  options: {
-    Flavours: string;
-    Quantity: string;
-  };
-}
-
-interface Product {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  brand: string;
-  category: string
-  regular_price: number;
-  sale_price?: number;
-  inventory_quantity: number;
-  images: { url: string; is_primary_image?: boolean }[];
-  dimensions?: {
-    height: number;
-    width: number;
-    length: number;
-    weight: number;
-  };
-  variants?: Variant[];
-}
+import { fetchProducts } from "../services/product";
+import type { Product, Facet } from "./types";
 
 const productsPerPage = 3;
 
 export default function ProductList() {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [facets, setFacets] = useState<Facet[]>([]);
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [categoryList, setCategoryList] = useState<string[]>([]);
+  // Toggle checkbox filter
+  const toggleCheckbox = (facetName: string, value: string) => {
+    setSelectedFilters((prev) => {
+      const currentValues = prev[facetName] || [];
+      const updated = currentValues.includes(value)
+        ? currentValues.filter((v) => v !== value)
+        : [...currentValues, value];
 
+      return {
+        ...prev,
+        [facetName]: updated,
+      };
+    });
+    setCurrentPage(1); // Reset to page 1 on filter change
+  };
 
-const toggleCheckbox = (
-  value: string,
-  selected: string[],
-  setter: (v: string[]) => void
-) => {
-  if (!Array.isArray(selected)) return;
-
-  if (selected.includes(value)) {
-    setter(selected.filter((v) => v !== value));
-  } else {
-    setter([...selected, value]);
-  }
-};
-
-// initial fetch
-useEffect(() => {
-  const load = async () => {
+  // Fetch products with filters
+  const loadProducts = async () => {
     setLoading(true);
     try {
-      const { items, facets } = await fetchProducts();  // 👈 Fix: destructure
-      setAllProducts(items);
-      setFilteredProducts(items);
-
-      const categoryFacet = facets.find((f: any) => f.name === "Category");
-      setCategoryList(categoryFacet?.values?.map((v: any) => v.value) || []);
-
+      const { items, facets } = await fetchProducts(selectedFilters);
+      setProducts(items);
+      setFacets(facets);
       setError(null);
     } catch (err: any) {
+      console.error(err);
       setError(err.message || "Failed to load products");
     } finally {
       setLoading(false);
     }
   };
 
-  load();
-}, []);
+  useEffect(() => {
+    loadProducts();
+  }, [selectedFilters]);
 
-
-
-
-  // Apply filters
-useEffect(() => {
-  const load = async () => {
-    setLoading(true);
-    try {
-      const { items, facets } = await fetchProducts({
-        brands: selectedBrands,
-        categories: selectedCategories,
-      });
-
-      setAllProducts(items);
-      setFilteredProducts(items);
-      setError(null);
-
-      const categoryFacet = facets.find((f: any) => f.name === "Category");
-      setCategoryList(categoryFacet?.values?.map((v: any) => v.value) || []);
-    } catch (err: any) {
-      setError(err.message || "Failed to load products");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  load();
-}, [selectedBrands, selectedCategories]);
-
-
-  // Extract brand facets from all products
-  const allBrands = Array.from(new Set(allProducts.map((p) => p.brand)));
-  
- /* const allCategories = Array.from(
-    new Set(allProducts.flatMap((p) => p.category || []))
-  );*/
-
-
-  // Pagination
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-  const startIdx = (currentPage - 1) * productsPerPage;
-  const paginated = filteredProducts.slice(startIdx, startIdx + productsPerPage);
-
+  // Pagination logic
+  const totalPages = Math.ceil(products.length / productsPerPage);
+  const paginated = products.slice(
+    (currentPage - 1) * productsPerPage,
+    currentPage * productsPerPage
+  );
 
   return (
     <div className="flex justify-center w-full bg-gray-50 py-8">
       <div className="flex gap-8 max-w-7xl w-full px-4">
+        {/* Filter Sidebar */}
         <aside className="w-64">
           <h2 className="text-lg font-bold mb-4">Filters</h2>
-          <details>
-            <summary className="font-semibold cursor-pointer">Brand</summary>
-            <div className="mt-2 space-y-1 max-h-48 overflow-auto">
-              {allBrands.map((b) => (
-                <label key={b} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes(b)}
-                    onChange={() => toggleCheckbox(b, selectedBrands, setSelectedBrands)}
-                  />
-                  <span>{b}</span>
-                </label>
-              ))}
-            </div>
-          </details>
-          {/* Category Filter */}
-          <details>
-            <summary className="font-semibold cursor-pointer mt-4">Category</summary>
-            <div className="mt-2 space-y-1 max-h-48 overflow-auto">
-              {categoryList.map((cat) => (
-                <label key={cat} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(cat)}
-                    onChange={() =>
-                      toggleCheckbox(cat, selectedCategories, setSelectedCategories)
-                    }
-                  />
-                  <span>{cat}</span>
-                </label>
-              ))}
-            </div>
-          </details>
+          {facets.map((facet) => (
+            <details key={facet.name} className="mb-4">
+              <summary className="font-semibold cursor-pointer capitalize">
+                {facet.name}
+              </summary>
+              <div className="mt-2 space-y-1 max-h-48 overflow-auto">
+                {facet.values.map((v) => (
+                  <label key={v.value} className="flex items-center space-x-2 capitalize">
+                    <input
+                      type="checkbox"
+                      checked={selectedFilters[facet.name]?.includes(v.value) || false}
+                      onChange={() => toggleCheckbox(facet.name, v.value)}
+                    />
+                    <span>{v.value} ({v.count})</span>
+                  </label>
+                ))}
+              </div>
+            </details>
+          ))}
         </aside>
 
-      <div className="flex-1">
-        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-          {paginated.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {/* Product List */}
+        <div className="flex-1">
+          {loading && <p>Loading products...</p>}
+          {error && <p className="text-red-500">{error}</p>}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-6 space-x-2">
-            <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}className="px-3 py-1 border rounded">
-              Prev
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-3 py-1 border rounded ${
-                  page === currentPage ? "bg-blue-600 text-white" : "bg-white text-black"
-                }`}
-              >
-                {page}
-              </button>
+          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+            {!loading && !error && paginated.length === 0 && (
+              <p>No products match selected filters.</p>
+            )}
+            {paginated.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
-            <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} className="px-3 py-1 border rounded">
-              Next
-            </button>
           </div>
-        )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6 space-x-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                className="px-3 py-1 border rounded"
+              >
+                Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 border rounded ${
+                    page === currentPage
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-black"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                className="px-3 py-1 border rounded"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  </div>
   );
 }
